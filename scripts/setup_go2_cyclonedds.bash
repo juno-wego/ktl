@@ -50,12 +50,14 @@ else
   echo "Warning: /opt/ros/${ROS_DISTRO}/setup.bash was not found."
 fi
 
+_unitree_ros2_setup="${_go2_setup_root}/../unitree_ros2/cyclonedds_ws/install/setup.bash"
+
 if [[ -n "${GO2_EXTRA_SETUP:-}" && -f "${GO2_EXTRA_SETUP}" ]]; then
   # shellcheck disable=SC1090
   source "${GO2_EXTRA_SETUP}"
-elif [[ -f "${HOME}/unitree_ros2/cyclonedds_ws/install/setup.bash" ]]; then
+elif [[ -f "${_unitree_ros2_setup}" ]]; then
   # shellcheck disable=SC1090
-  source "${HOME}/unitree_ros2/cyclonedds_ws/install/setup.bash"
+  source "${_unitree_ros2_setup}"
 elif [[ -f "${HOME}/ros2_ws/install/setup.bash" ]]; then
   # shellcheck disable=SC1090
   source "${HOME}/ros2_ws/install/setup.bash"
