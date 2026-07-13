@@ -80,6 +80,12 @@ ros2 topic echo /go2/odom --once
 
 다리나 지면이 장애물로 들어오면 높이 범위를 확인한다. 센서 자체의 위치·방향은 URDF에서 수정한다.
 
+### 높이 기준과 timestamp
+
+`min_height`, `max_height`는 지면 기준이 아니라 **`base_link` 기준 z값**이다. 현재 URDF에서 `hesai_lidar`는 `base` 기준 `z=0.15 m`, yaw `+90°`로 고정되어 있다. 따라서 로봇 몸체의 기울기나 실제 지면 높이를 직접 나타내는 값으로 높이 필터를 해석하면 안 된다.
+
+매핑 launch에만 있는 `restamp_laserscan.py`는 `/hesai/scan_raw`의 `header.stamp`를 현재 ROS 시간으로 바꿔 `/scan`을 발행한다. 이는 scan과 현재 odom/TF의 시간 차이로 TF 조회가 실패하는 상황을 완화하기 위한 것이다. 다만 실제 센서 취득 시간을 보존하는 방식은 아니므로, timestamp 문제가 반복되면 upstream LiDAR 시간과 TF 발행 시간을 함께 점검해야 한다.
+
 ## SLAM이 지도를 만드는 방식
 
 1. odom으로 로봇의 이동을 예측한다.
@@ -88,6 +94,14 @@ ros2 topic echo /go2/odom --once
 4. 이전 장소를 재방문하면 loop closing으로 누적 오차를 줄인다.
 
 Odom은 부드럽지만 시간이 지날수록 drift가 생긴다. LaserScan은 이를 보정하지만 반복되는 복도나 빈 공간에서는 모호할 수 있다. 따라서 안정적인 TF, timestamp, 적절한 주행 속도가 중요하다.
+
+### 좋은 지도를 위한 주행 원칙
+
+- 시작 전에 RViz에서 `/scan`이 벽과 장애물을 안정적으로 표현하는지 확인한다.
+- 처음에는 벽·기둥 등 특징이 있는 구역을 지나며 천천히 한 바퀴 돈다.
+- 급가속·급회전 중에는 한 프레임 안에서 로봇 자세가 많이 달라져 scan matching이 불안정할 수 있다.
+- 같은 장소로 돌아와 loop closing이 가능한 경로를 만든다.
+- 지도 품질이 나쁘다고 바로 solver 값을 바꾸지 말고, TF·높이 필터·scan 주기·odom을 먼저 확인한다.
 
 ## 핵심 설정
 
@@ -104,6 +118,18 @@ Odom은 부드럽지만 시간이 지날수록 drift가 생긴다. LaserScan은 
 | `do_loop_closing` | `true` | 재방문 장소의 drift 보정 |
 
 처음에는 TF와 `scan_topic`, 레이저 범위가 맞는지 먼저 확인하고, 세부 파라미터는 그 다음에 조정한다.
+
+### 품질 문제별 조정 순서
+
+| 현상 | 먼저 확인 | 이후 조정 후보 |
+|---|---|---|
+| 벽이 두 겹으로 보임 | TF, scan timestamp, odom drift | `minimum_travel_*`, scan matching 범위 |
+| 지도가 너무 듬성듬성함 | `throttle_scans`, 이동 속도 | `minimum_travel_distance`, `minimum_travel_heading` 낮춤 |
+| CPU 사용량이 높음 | scan 주기, map 해상도 | `throttle_scans`, `minimum_time_interval`, `resolution` |
+| loop가 잘 안 닫힘 | 실제로 재방문했는지, scan 품질 | loop 응답 임계값·검색 범위 |
+| 잘못된 loop로 지도 휨 | 반복 구조 환경인지, TF | loop 응답 임계값을 높여 후보를 엄격화 |
+
+한 번에 한 종류의 값만 작게 바꾸고, 같은 경로를 다시 주행해 전후 지도를 비교한다.
 
 ## Pose graph와 지도 저장
 
@@ -137,7 +163,11 @@ ros2 run nav2_map_server map_saver_cli \
 | `map_practice.pgm` | 흑백 점유 격자 이미지 |
 | `map_practice.yaml` | 이미지 경로, 해상도, 원점, 임계값 |
 
+Pose graph와 점유 지도는 목적이 다르다. pose graph는 SLAM을 이어서 최적화하기 위한 데이터이고, PGM/YAML은 Nav2가 정적 지도로 읽는 결과물이다. PGM/YAML만 저장하면 SLAM을 같은 graph 상태로 재개할 수 없다.
+
 GIMP로 PGM을 수정할 때는 원본을 백업하고, 픽셀 크기와 YAML의 `resolution`을 유지한다. 안티앨리어싱이나 흐린 회색 영역은 점유 판정을 불안정하게 만들 수 있다.
+
+수정 후에는 Navigation에서 맵을 열고, 벽을 지운 곳·새로 막은 곳이 local/global costmap에 의도대로 반영되는지 확인한다.
 
 ## 빠른 문제 진단
 
@@ -150,5 +180,6 @@ GIMP로 PGM을 수정할 때는 원본을 백업하고, 픽셀 크기와 YAML의
 
 ```bash
 ros2 run tf2_tools view_frames
+ros2 run tf2_ros tf2_echo odom base_link
 ros2 service list | grep slam_toolbox
 ```
