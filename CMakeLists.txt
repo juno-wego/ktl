@@ -12,7 +12,6 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  scripts/bridge_pandar_to_udpframe.py
   scripts/restamp_laserscan.py
   DESTINATION lib/${PROJECT_NAME}
 )
