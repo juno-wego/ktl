@@ -160,4 +160,6 @@ sudo nvpmodel -q
 sudo nvpmodel -m <50W_모드번호>
 ```
 
-로그인 비밀번호는 교육 문서에 기록하지 않고 별도 보안 채널로 관리한다.
+## Credentials
+- id : ktl
+- password : ktl1234
