@@ -3,45 +3,12 @@ from launch.actions import (
     DeclareLaunchArgument,
     GroupAction,
     IncludeLaunchDescription,
-    OpaqueFunction,
-    SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-
-
-def _cyclonedds_setup(context, *_args, **_kwargs):
-    network_interface = (
-        LaunchConfiguration("network_interface")
-        .perform(context)
-        .strip()
-    )
-
-    if not network_interface:
-        return []
-
-    return [
-        SetEnvironmentVariable(
-            "RMW_IMPLEMENTATION",
-            "rmw_cyclonedds_cpp",
-        ),
-        SetEnvironmentVariable(
-            "CYCLONEDDS_URI",
-            "<CycloneDDS>"
-            "<Domain>"
-            "<General>"
-            "<Interfaces>"
-            f'<NetworkInterface name="{network_interface}" '
-            'priority="default" multicast="default" />'
-            "</Interfaces>"
-            "</General>"
-            "</Domain>"
-            "</CycloneDDS>",
-        ),
-    ]
 
 
 def generate_launch_description():
@@ -63,6 +30,14 @@ def generate_launch_description():
             ktl_share,
             "rviz",
             "go2_mapping.rviz",
+        ]
+    )
+    laser_scan_params = PathJoinSubstitution(
+        [
+            ktl_share,
+            "config",
+            "laser_scan",
+            "go2_pointcloud_to_laserscan.yaml",
         ]
     )
 
@@ -108,19 +83,6 @@ def generate_launch_description():
                 default_value="/hesai/scan_raw",
             ),
 
-            # SLAM Toolbox 입력
-            DeclareLaunchArgument(
-                "scan_topic",
-                default_value="/scan",
-            ),
-
-            DeclareLaunchArgument(
-                "scan_frame",
-                default_value="base_link",
-            ),
-
-            OpaqueFunction(function=_cyclonedds_setup),
-
             # 로봇 + 센서 전체 bringup
             GroupAction(
                 scoped=True,
@@ -140,9 +102,6 @@ def generate_launch_description():
                             "enable_control": LaunchConfiguration(
                                 "enable_control"
                             ),
-                            "enable_bridge": "true",
-                            "enable_description": "true",
-                            "enable_hesai": "true",
                             "rebase_odom_on_start": "true",
                             "rviz": "false",
                             "use_sim_time": use_sim_time,
@@ -168,19 +127,8 @@ def generate_launch_description():
                     ),
                 ],
                 parameters=[
+                    laser_scan_params,
                     {
-                        "target_frame": LaunchConfiguration(
-                            "scan_frame"
-                        ),
-                        "min_height": 0.0,
-                        "max_height": 1.0,
-                        "angle_min": -3.14159,
-                        "angle_max": 3.14159,
-                        "angle_increment": 0.0087,
-                        "scan_time": 0.1,
-                        "range_min": 0.1,
-                        "range_max": 20.0,
-                        "use_inf": True,
                         "use_sim_time": use_sim_time,
                     }
                 ],
@@ -199,7 +147,7 @@ def generate_launch_description():
                     ),
                     (
                         "scan_out",
-                        LaunchConfiguration("scan_topic"),
+                        "/scan",
                     ),
                 ],
                 parameters=[

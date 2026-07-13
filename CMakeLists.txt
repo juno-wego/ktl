@@ -13,9 +13,7 @@ install(DIRECTORY
 
 install(PROGRAMS
   scripts/bridge_pandar_to_udpframe.py
-  scripts/configure_go2_eth.bash
   scripts/restamp_laserscan.py
-  scripts/setup_go2_cyclonedds.bash
   DESTINATION lib/${PROJECT_NAME}
 )
 

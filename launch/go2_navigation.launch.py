@@ -45,6 +45,14 @@ def generate_launch_description():
             "go2_navigation.rviz",
         ]
     )
+    laser_scan_params = PathJoinSubstitution(
+        [
+            ktl_share,
+            "config",
+            "laser_scan",
+            "go2_pointcloud_to_laserscan.yaml",
+        ]
+    )
 
     return LaunchDescription(
         [
@@ -86,13 +94,8 @@ def generate_launch_description():
                             )
                         ),
                         launch_arguments={
-                            "network_interface": "eno1",
-                            "enable_control": "true",
-                            "enable_bridge": "true",
-                            "enable_description": "true",
-                            "enable_hesai": "true",
+                            # Navigation launches its own RViz instance.
                             "rviz": "false",
-                            "use_sim_time": "false",
                         }.items(),
                     ),
                 ],
@@ -125,25 +128,8 @@ def generate_launch_description():
                     ),
                 ],
                 parameters=[
+                    laser_scan_params,
                     {
-                        "target_frame": "base_link",
-                        "transform_tolerance": 0.1,
-
-                        "min_height": -0.15,
-                        "max_height": 0.45,
-
-                        "angle_min": -3.141592,
-                        "angle_max": 3.141592,
-                        "angle_increment": 0.0087,
-
-                        "scan_time": 0.1,
-
-                        "range_min": 0.20,
-                        "range_max": 20.0,
-
-                        "use_inf": True,
-                        "inf_epsilon": 1.0,
-
                         "use_sim_time": False,
                     }
                 ],

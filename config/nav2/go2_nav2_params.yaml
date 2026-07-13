@@ -1,53 +1,189 @@
 amcl:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
-    alpha1: 0.2
-    alpha2: 0.2
-    alpha3: 0.2
-    alpha4: 0.2
-    alpha5: 0.2
+
+    # 회전 운동에서 발생하는 회전 오차 계수입니다.
+    # 값을 키우면 회전 중 오도메트리를 덜 신뢰하고 입자 분산이 커집니다.
+    alpha1: 0.1
+
+    # 이동 중 발생하는 회전 오차 계수입니다.
+    # 직진할 때 heading이 흔들리면 조금씩 키워 오도메트리 불확실성을 반영합니다.
+    alpha2: 0.02
+
+    # 이동 중 발생하는 위치 오차 계수입니다.
+    # 주행할수록 위치가 밀리면 키우고, 위치가 튀면 줄입니다.
+    alpha3: 0.1
+
+    # 회전으로 발생하는 위치 오차 계수입니다.
+    # 회전 후 위치가 옆으로 밀리면 키웁니다.
+    alpha4: 0.02
+
+    # Omni 이동에서 추가로 반영할 위치 오차 계수입니다.
+    # 횡이동이 많은 경우에만 조금씩 키우고, 평소에는 낮게 유지합니다.
+    alpha5: 0.02
+
+    # 로봇의 기준 프레임 이름입니다.
+    # TF에 존재하는 base_link와 일치해야 위치 추정이 정상 동작합니다.
     base_frame_id: base_link
-    beam_skip_distance: 0.5
+
+    # 지도와 측정이 이 거리 이상 어긋난 빔을 skip 후보로 봅니다.
+    # 값을 키우면 먼 거리의 불일치만 무시합니다.
+    beam_skip_distance: 1.0
+
+    # 빔 skip을 중단할 전체 오차 비율입니다.
+    # 값을 낮추면 조금만 불일치해도 빔 skip을 사용하지 않습니다.
     beam_skip_error_threshold: 0.9
-    beam_skip_threshold: 0.3
-    do_beamskip: false
+
+    # 빔 skip을 적용할 최소 불일치 비율입니다.
+    # 값을 낮추면 일부 동적 장애물이 있어도 정합을 계속 유지할 수 있습니다.
+    beam_skip_threshold: 0.5
+
+    # 동적 장애물이나 가려진 빔을 정합에서 제외할지 결정합니다.
+    # Hesai scan에 사람·다리·노이즈가 섞일 때 위치 튐을 줄이는 데 도움이 됩니다.
+    do_beamskip: true
+
+    # 지도 전역 프레임 이름입니다.
+    # 사용하는 Occupancy Grid의 frame과 map으로 일치해야 합니다.
     global_frame_id: map
+
+    # 짧게 측정된 거리의 likelihood 감쇠 계수입니다.
+    # 값을 키우면 예상보다 짧은 측정값을 더 강하게 불리하게 평가합니다.
     lambda_short: 0.1
+
+    # LaserScan likelihood 계산에 사용할 최대 거리(m)입니다.
+    # 값을 줄이면 먼 거리 측정값의 영향이 감소합니다.
     laser_likelihood_max_dist: 2.0
+
+    # AMCL이 사용할 LaserScan 최대 거리(m)입니다.
+    # 값을 줄이면 먼 포인트를 무시해 계산량과 오검출을 줄일 수 있습니다.
     laser_max_range: 20.0
+
+    # AMCL이 사용할 LaserScan 최소 거리(m)입니다.
+    # 값을 키우면 센서 바로 앞의 불안정한 측정값을 제외합니다.
     laser_min_range: 0.1
-    laser_model_type: likelihood_field
-    max_beams: 80
+
+    # LaserScan 확률 모델입니다.
+    # likelihood_field_prob는 빔 skip과 함께 잘못된 측정의 영향을 완화합니다.
+    laser_model_type: likelihood_field_prob
+
+    # 사용할 최대 LaserScan 빔 수입니다.
+    # 값을 키우면 정합 정보가 늘지만 AMCL CPU 사용량도 증가합니다.
+    max_beams: 100
+
+    # AMCL 입자의 최대 개수입니다.
+    # 값을 키우면 모호한 환경에서 안정성이 좋아지지만 계산량이 늘어납니다.
     max_particles: 2000
+
+    # AMCL 입자의 최소 개수입니다.
+    # 값을 키우면 위치 후보를 충분히 유지하지만 평상시 계산량이 증가합니다.
     min_particles: 500
+
+    # 오도메트리 프레임 이름입니다.
+    # TF의 odom 프레임과 일치해야 AMCL이 주행 변화를 반영합니다.
     odom_frame_id: odom
+
+    # 입자 재표본화의 오차 허용값입니다.
+    # 값을 낮추면 더 정확하지만 입자 수가 빠르게 늘어날 수 있습니다.
     pf_err: 0.05
+
+    # 입자 재표본화의 신뢰 확률입니다.
+    # 값을 높이면 더 보수적으로 충분한 입자를 유지합니다.
     pf_z: 0.99
+
+    # 빠른 위치 변화에 대한 recovery 가중치입니다.
+    # 값을 키우면 센서 불일치 시 전역 재초기화 성향이 강해집니다.
     recovery_alpha_fast: 0.0
+
+    # 느린 위치 변화에 대한 recovery 가중치입니다.
+    # 값을 키우면 장시간 위치를 잃었을 때 전역 복구가 더 적극적입니다.
     recovery_alpha_slow: 0.0
+
+    # 입자 재표본화를 수행할 주기입니다.
+    # 값을 키우면 재표본화 빈도가 줄어들고 계산량이 감소합니다.
     resample_interval: 1
+
+    # 사용할 로봇 운동 모델입니다.
+    # OmniMotionModel은 Go2의 x, y, yaw 이동을 모두 허용합니다.
     robot_model_type: nav2_amcl::OmniMotionModel
+
+    # AMCL pose를 저장하는 주기(초)입니다.
+    # 값을 줄이면 복구용 pose가 더 자주 저장됩니다.
     save_pose_rate: 0.5
-    sigma_hit: 0.2
+
+    # 지도와 일치하는 측정값의 거리 표준편차(m)입니다.
+    # Hesai 2D 투영 오차를 고려해 너무 엄격하지 않게 둡니다.
+    sigma_hit: 0.45
+
+    # AMCL이 map->odom TF를 발행할지 결정합니다.
+    # true여야 Nav2가 지도 기준 위치를 사용할 수 있습니다.
     tf_broadcast: true
-    transform_tolerance: 0.3
-    update_min_a: 0.15
+
+    # TF 변환을 기다릴 최대 시간(초)입니다.
+    # scan과 odom 시간 차이를 허용하되 오래된 자세는 사용하지 않도록 제한합니다.
+    transform_tolerance: 0.2
+
+    # AMCL 갱신을 수행할 최소 회전량(rad)입니다.
+    # 값을 낮추면 회전 중 scan 보정이 더 자주 수행됩니다.
+    update_min_a: 0.10
+
+    # 목표 이동량으로 인정할 최소 거리(m)입니다.
+    # 값을 키우면 작은 이동을 무시해 불필요한 갱신을 줄입니다.
     update_min_d: 0.10
+
+    # 지도와 일치하는 정상 측정값의 likelihood 가중치입니다.
+    # 값을 키우면 정적 벽과 잘 맞는 scan을 더 강하게 신뢰합니다.
     z_hit: 0.5
-    z_max: 0.05
-    z_rand: 0.45
-    z_short: 0.05
+
+    # 최대 거리로 측정된 빔의 likelihood 가중치입니다.
+    # 낮게 유지해 빈 빔이 위치 보정을 과도하게 좌우하지 않게 합니다.
+    z_max: 0.03
+
+    # 무작위 측정값의 likelihood 가중치입니다.
+    # 값을 키우면 노이즈를 더 허용하지만 정합이 둔해질 수 있습니다.
+    z_rand: 0.4
+
+    # 예상보다 짧은 측정값의 likelihood 가중치입니다.
+    # 동적 장애물이나 가림으로 가까운 hit가 생기는 상황을 일부 허용합니다.
+    z_short: 0.07
+
+    # AMCL이 구독할 LaserScan 토픽입니다.
+    # LaserScan 변환 결과인 /scan과 일치해야 합니다.
     scan_topic: /scan
+
+    # 시작 pose를 파라미터로 사용할지 결정합니다.
+    # true로 바꾸면 initial_pose_* 값과 함께 초기 위치를 지정할 수 있습니다.
     set_initial_pose: false
 
 bt_navigator:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
+
+    # Nav2 전역 기준 프레임입니다.
+    # 지도와 AMCL의 global_frame_id와 map으로 일치해야 합니다.
     global_frame: map
+
+    # Nav2가 사용할 로봇 기준 프레임입니다.
+    # TF의 base_link와 일치해야 경로와 로봇 위치가 맞습니다.
     robot_base_frame: base_link
+
+    # BT Navigator가 사용할 오도메트리 토픽입니다.
+    # Go2 상태 브리지의 /go2/odom과 연결됩니다.
     odom_topic: /go2/odom
+
+    # BT를 반복 실행하는 주기(ms)입니다.
+    # 값을 키우면 반응이 느려지고, 줄이면 CPU 사용량이 늘어납니다.
     bt_loop_duration: 10
+
+    # BT 서버 응답을 기다릴 최대 시간(ms)입니다.
+    # 값을 키우면 느린 서버를 허용하지만 실패 감지가 늦어집니다.
     default_server_timeout: 20
+
+    # BT에서 사용할 플러그인 라이브러리 목록입니다.
+    # 항목을 추가하면 해당 조건/행동 노드를 BT XML에서 사용할 수 있습니다.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -99,10 +235,14 @@ bt_navigator:
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
 
 bt_navigator_navigate_to_pose_rclcpp_node:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
 
 controller_server:
@@ -239,7 +379,12 @@ global_costmap:
 
 map_server:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
+
+    # map_server가 읽을 지도 YAML 경로입니다.
+    # 런치의 map 인자가 이 값을 덮어쓰므로 기본값은 빈 문자열로 둡니다.
     yaml_filename: ""
 
 planner_server:
@@ -255,48 +400,138 @@ planner_server:
 
 smoother_server:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
+
+    # 사용할 경로 smoother 이름 목록입니다.
+    # 아래 simple_smoother 설정과 이름이 일치해야 합니다.
     smoother_plugins: [simple_smoother]
+
     simple_smoother:
+      # 경로를 부드럽게 만드는 smoother 구현입니다.
+      # SimpleSmoother는 경로의 급격한 방향 변화를 줄입니다.
       plugin: nav2_smoother::SimpleSmoother
+
+      # smoothing 종료 판단 오차입니다.
+      # 값을 낮추면 더 정밀하게 수렴하지만 반복 계산이 늘어납니다.
       tolerance: 1.0e-10
+
+      # smoothing 최대 반복 횟수입니다.
+      # 값을 키우면 더 많이 보정하지만 처리 시간이 증가합니다.
       max_its: 1000
+
+      # 보정 결과를 다시 세밀하게 다듬을지 결정합니다.
+      # true이면 경로가 더 부드러워질 수 있지만 계산량이 증가합니다.
       do_refinement: true
 
 behavior_server:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
+
+    # Local costmap raw 토픽입니다.
+    # behavior가 주변 장애물 정보를 확인하는 데 사용합니다.
     local_costmap_topic: local_costmap/costmap_raw
+
+    # Global costmap raw 토픽입니다.
+    # behavior가 전역 장애물 정보를 확인하는 데 사용합니다.
     global_costmap_topic: global_costmap/costmap_raw
+
+    # Local footprint 토픽입니다.
+    # 회전과 후진 behavior의 로봇 외곽선 계산에 사용됩니다.
     local_footprint_topic: local_costmap/published_footprint
+
+    # Global footprint 토픽입니다.
+    # 전역 기준 behavior의 로봇 외곽선 계산에 사용됩니다.
     global_footprint_topic: global_costmap/published_footprint
+
+    # Behavior 실행 주기(Hz)입니다.
+    # 값을 키우면 회전/후진/대기의 상태 반응이 빨라집니다.
     cycle_frequency: 10.0
+
+    # 사용할 behavior 목록입니다.
+    # 목록 이름은 아래 각 behavior 설정 키와 일치해야 합니다.
     behavior_plugins: [spin, backup, drive_on_heading, wait]
+
     spin:
+      # 제자리 회전 behavior 구현입니다.
+      # Nav2의 회복 동작과 Spin action에 사용됩니다.
       plugin: nav2_behaviors/Spin
+
     backup:
+      # 후진 behavior 구현입니다.
+      # 장애물 회피 회복 동작과 BackUp action에 사용됩니다.
       plugin: nav2_behaviors/BackUp
+
     drive_on_heading:
+      # 지정 방향으로 주행하는 behavior 구현입니다.
+      # Recovery 또는 BT의 DriveOnHeading action에 사용됩니다.
       plugin: nav2_behaviors/DriveOnHeading
+
     wait:
+      # 대기 behavior 구현입니다.
+      # 장애물이나 BT 조건을 기다리는 동작에 사용됩니다.
       plugin: nav2_behaviors/Wait
+
+    # Behavior가 사용하는 전역 기준 프레임입니다.
+    # 현재 로봇 주행 기준인 odom과 일치시킵니다.
     global_frame: odom
+
+    # Behavior가 사용하는 로봇 기준 프레임입니다.
+    # TF의 base_link와 일치해야 회복 동작이 맞습니다.
     robot_base_frame: base_link
+
+    # Behavior TF를 기다릴 최대 시간(초)입니다.
+    # 값을 키우면 TF 지연에 강해지지만 동작 반응이 늦어집니다.
     transform_tolerance: 0.3
+
+    # Behavior가 미래 상태를 시뮬레이션할 시간(초)입니다.
+    # 값을 키우면 회복 동작을 더 먼 미래까지 검토합니다.
     simulate_ahead_time: 2.0
+
+    # 최대 회전 속도(rad/s)입니다.
+    # 값을 낮추면 회복 회전이 느리고 부드러워집니다.
     max_rotational_vel: 0.6
+
+    # 최소 회전 속도(rad/s)입니다.
+    # 값을 높이면 너무 느린 회전이 제거되어 정지 떨림을 줄일 수 있습니다.
     min_rotational_vel: 0.2
+
+    # 회전 가속도 제한(rad/s²)입니다.
+    # 값을 낮추면 회복 회전의 시작과 정지가 부드러워집니다.
     rotational_acc_lim: 1.0
 
 waypoint_follower:
   ros__parameters:
+    # ROS 2 시뮬레이션 시간을 사용할지 결정합니다.
+    # 실제 로봇에서는 false, 시뮬레이터에서는 true로 설정합니다.
     use_sim_time: false
+
+    # Waypoint 처리 주기(Hz)입니다.
+    # 값을 키우면 waypoint 상태 확인이 빨라집니다.
     loop_rate: 20
+
+    # 하나의 waypoint 실패 시 전체 작업을 중단할지 결정합니다.
+    # true이면 실패 즉시 중단하고, false이면 다음 waypoint를 시도합니다.
     stop_on_failure: false
+
+    # waypoint 도착 후 실행할 task executor 이름입니다.
+    # 아래 wait_at_waypoint 설정의 키와 일치해야 합니다.
     waypoint_task_executor_plugin: wait_at_waypoint
+
     wait_at_waypoint:
+      # waypoint 대기 executor 구현입니다.
+      # 도착 후 지정 시간 동안 정지하는 동작을 제공합니다.
       plugin: nav2_waypoint_follower::WaitAtWaypoint
+
+      # waypoint 도착 대기를 활성화할지 결정합니다.
+      # false이면 waypoint 도착 후 대기하지 않습니다.
       enabled: true
+
+      # waypoint 도착 후 대기할 시간(ms)입니다.
+      # 값을 줄이면 다음 waypoint로 더 빨리 이동합니다.
       waypoint_pause_duration: 200
 
 velocity_smoother:
