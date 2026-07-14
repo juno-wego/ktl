@@ -58,6 +58,10 @@ ros2 launch ktl go2_mapping.launch.py \
 
 주행을 마친 뒤 Pose graph와 Navigation용 지도를 저장한다.
 
+아래 두 명령은 같은 기본 이름 `map_practice`를 사용한다. 첫 번째 명령은
+`map_practice.posegraph`, `map_practice.data`를 만들고, 두 번째 명령은
+`map_practice.pgm`, `map_practice.yaml`을 만든다.
+
 ```bash
 ros2 service call /slam_toolbox/serialize_map \
   slam_toolbox/srv/SerializePoseGraph \
