@@ -105,7 +105,7 @@ def generate_launch_description():
             # LiDAR PointCloud → LaserScan
             #
             # base_link 기준 높이 범위:
-            #   -0.15 m ~ 0.45 m
+            #   -0.05 m ~ 0.45 m, 최소 거리 0.50 m
             #
             # Go2 특성상:
             # - 지면 노이즈를 일부 제거
