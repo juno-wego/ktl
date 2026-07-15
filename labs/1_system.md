@@ -92,6 +92,23 @@ ping -c 1 192.168.123.161 # Go2 motion controller
 
 <img src="images/ping_test.png" style="width:300px; height:auto;">
 
+### Jetson·확장 PC 시간 동기화
+
+Jetson(`192.168.123.222`)은 시간 서버이고, Go2 확장 PC(`192.168.123.18`)는 Jetson 시간을
+자동으로 받는다. LiDAR 메시지의 timestamp는 두 장치의 시간이 맞으면 그대로 사용한다.
+
+`/scan`을 만들 때 원래 timestamp와 Jetson 시간이 `0.2초` 이상 차이 나거나 timestamp가
+비어 있으면, 그 메시지만 Jetson 수신 시각으로 바꾼다. 이는 확장 PC 시간이 잘못된 상태에서
+SLAM과 Nav2의 TF 오류를 막기 위한 예외 처리다.
+
+```bash
+# Go2 확장 PC(.18): Jetson 시간 동기화 상태
+timedatectl timesync-status
+
+# Jetson(.222): 시간을 요청한 확장 PC 확인
+sudo chronyc clients
+```
+
 
 ## ROS 2, DDS, CycloneDDS
 

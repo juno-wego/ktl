@@ -60,7 +60,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "map",
                 default_value=PathJoinSubstitution(
-                    [ktl_share, "maps", "map_260710_1.yaml"]
+                    [ktl_share, "maps", "map_260715_105707.yaml"]
                 ),
                 description="저장된 Occupancy Grid map YAML 파일 경로",
             ),
@@ -69,7 +69,6 @@ def generate_launch_description():
                 default_value="true",
                 description="RViz 실행 여부",
             ),
-
             # ----------------------------------------------------------
             # Go2 로봇 및 센서 Bringup
             #
@@ -124,11 +123,29 @@ def generate_launch_description():
                     ),
                     (
                         "scan",
-                        "/scan",
+                        "/hesai/scan_raw",
                     ),
                 ],
                 parameters=[
                     laser_scan_params,
+                    {
+                        "use_sim_time": False,
+                    }
+                ],
+            ),
+
+            # 시간 동기화가 정상일 때는 LiDAR의 원래 timestamp를 유지한다.
+            # .18과 .222의 시간이 크게 어긋난 경우에만 Jetson 수신 시각으로 대체한다.
+            Node(
+                package="ktl",
+                executable="restamp_laserscan.py",
+                name="hesai_scan_restamper",
+                output="screen",
+                remappings=[
+                    ("scan_in", "/hesai/scan_raw"),
+                    ("scan_out", "/scan"),
+                ],
+                parameters=[
                     {
                         "use_sim_time": False,
                     }

@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded: ~
       Splitter Ratio: 0.5
-    Tree Height: 282
+    Tree Height: 484
   - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Pose Estimate1
@@ -273,6 +273,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
         front_camera:
           Alpha: 1
           Show Axes: false
@@ -617,25 +618,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 8
+      Distance: 23.10860252380371
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -0.5474370121955872
+        Y: -1.823384404182434
+        Z: 0.0017910557799041271
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0347963571548462
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.9300006031990051
+      Yaw: 1.7099995613098145
     Saved: ~
 Window Geometry:
   Displays:
@@ -643,7 +644,7 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: ""
+  QMainWindow State: 000000ff00000000fd0000000100000000000001560000039efc0200000004fb000000100044006900730070006c006100790073010000003d00000221000000c900fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000264000001770000005c00fffffffb0000000a0056006900650077007300000002d800000103000000a400fffffffb0000000800540069006d006500000003a2000000390000003900ffffff000005ee0000039e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Time:
     collapsed: false
   Tool Properties:

@@ -82,7 +82,6 @@ def generate_launch_description():
                 "scan_raw_topic",
                 default_value="/hesai/scan_raw",
             ),
-
             # 로봇 + 센서 전체 bringup
             GroupAction(
                 scoped=True,
