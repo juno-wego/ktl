@@ -12,6 +12,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
+  scripts/filter_laserscan_self.py
   scripts/restamp_laserscan.py
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -53,6 +53,14 @@ def generate_launch_description():
             "go2_pointcloud_to_laserscan.yaml",
         ]
     )
+    laser_self_filter_params = PathJoinSubstitution(
+        [
+            ktl_share,
+            "config",
+            "laser_scan",
+            "go2_laserscan_self_filter.yaml",
+        ]
+    )
 
     return LaunchDescription(
         [
@@ -143,12 +151,31 @@ def generate_launch_description():
                 output="screen",
                 remappings=[
                     ("scan_in", "/hesai/scan_raw"),
-                    ("scan_out", "/scan"),
+                    ("scan_out", "/hesai/scan_restamped"),
                 ],
                 parameters=[
                     {
                         "use_sim_time": False,
                     }
+                ],
+            ),
+
+            # 가까운 scan을 버리지 않고, Go2 body footprint 안에 끝나는 ray만
+            # 제거한다. 회전 중 근접 장애물은 보존하면서 self-hit을 막는다.
+            Node(
+                package="ktl",
+                executable="filter_laserscan_self.py",
+                name="go2_laser_scan_self_filter",
+                output="screen",
+                remappings=[
+                    ("scan_in", "/hesai/scan_restamped"),
+                    ("scan_out", "/scan"),
+                ],
+                parameters=[
+                    laser_self_filter_params,
+                    {
+                        "use_sim_time": False,
+                    },
                 ],
             ),
 
