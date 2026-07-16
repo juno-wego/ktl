@@ -71,6 +71,16 @@ ros2 run nav2_map_server map_saver_cli \
   -f /home/ktl/ktl_ws/src/ktl/maps/map_practice
 ```
 
+저장한 pose graph를 이어서 매핑할 때는 `.posegraph`와 `.data` 파일을 함께 둔다.
+
+```bash
+ros2 launch ktl go2_mapping.launch.py \
+  network_interface:=eno1 \
+  posegraph:=/home/ktl/ktl_ws/src/ktl/maps/map_practice \
+  map_start_pose:='[0.0, 0.0, 0.0]' \
+  rviz:=true
+```
+
 ## 6. 자율주행
 
 아래 명령 하나로 Go2·LiDAR·Navigation을 함께 실행한다. 이때는 기본 bringup을 따로 실행하지 않는다.

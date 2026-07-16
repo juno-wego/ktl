@@ -9,6 +9,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
@@ -43,6 +44,17 @@ def generate_launch_description():
 
     network_interface = LaunchConfiguration("network_interface")
     use_sim_time = LaunchConfiguration("use_sim_time")
+    slam_params_file = LaunchConfiguration("slam_params_file")
+    posegraph = LaunchConfiguration("posegraph")
+    map_start_pose = LaunchConfiguration("map_start_pose")
+    configured_slam_params = RewrittenYaml(
+        source_file=slam_params_file,
+        param_rewrites={
+            "map_file_name": posegraph,
+            "map_start_pose": map_start_pose,
+        },
+        convert_types=True,
+    )
 
     return LaunchDescription(
         [
@@ -69,6 +81,22 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "slam_params_file",
                 default_value=slam_params,
+            ),
+            DeclareLaunchArgument(
+                "posegraph",
+                default_value="",
+                description=(
+                    "불러와 이어서 매핑할 Slam Toolbox pose graph의 기본 경로 "
+                    "(확장자 제외). 비우면 새 graph로 매핑한다."
+                ),
+            ),
+            DeclareLaunchArgument(
+                "map_start_pose",
+                default_value="[0.0, 0.0, 0.0]",
+                description=(
+                    "복원 graph에서의 시작 [x, y, yaw] (map -> base_link). "
+                    "저장 당시 시작 지점에서 재개하면 [0, 0, 0]."
+                ),
             ),
 
             # bringup에서 생성되는 PointCloud 입력
@@ -169,9 +197,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "use_sim_time": use_sim_time,
-                    "slam_params_file": LaunchConfiguration(
-                        "slam_params_file"
-                    ),
+                    "slam_params_file": configured_slam_params,
                 }.items(),
             ),
 

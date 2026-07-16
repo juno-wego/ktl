@@ -192,6 +192,28 @@ ros2 run nav2_map_server map_saver_cli \
   -f /home/ktl/ktl_ws/src/ktl/maps/map_260715_105707
 ```
 
+## 저장한 pose graph를 불러와 이어서 매핑하기
+
+`posegraph` 인자가 비어 있으면 새 graph로 매핑한다. 저장한 graph를 이어 쓰려면
+확장자를 뺀 기본 경로를 지정하고, 같은 경로의 `.posegraph`와 `.data` 파일을 함께 둔다.
+
+처음 매핑을 시작했던 위치에서 재개하는 예시는 다음과 같다.
+
+```bash
+ros2 launch ktl go2_mapping.launch.py \
+  posegraph:=/home/ktl/ktl_ws/src/ktl/maps/map_practice \
+  map_start_pose:='[0.0, 0.0, 0.0]' \
+  rviz:=true
+```
+
+`map_start_pose`는 저장된 지도 좌표계의 `[x, y, yaw]`다. 즉, 맵핑 시작 위치에서 맵핑을 재개해야 한다. 다른 위치에서 재개하면 지도와 pose graph가 맞지 않아 지도가 휘거나 깨진다.
+
+```bash
+ros2 service call /slam_toolbox/deserialize_map \
+  slam_toolbox/srv/DeserializePoseGraph \
+  "{filename: '/home/ktl/ktl_ws/src/ktl/maps/map_practice.posegraph', match_type: 1, initial_pose: {x: 0.0, y: 0.0, theta: 0.0}}"
+```
+
 ## 저장한 지도 편집하기
 
 지도에서 없애고 싶은 노이즈를 지우거나, 실제로 막힌 곳을 장애물로 표시해야 할 때는
@@ -218,7 +240,7 @@ cp map_practice.yaml map_practice_edited.yaml
 |---|---|---|
 | 검정 (`0`) | 장애물 | 벽·출입 금지 구역을 추가할 때 |
 | 흰색 (`255`) | 이동 가능한 공간 | 잘못 들어간 장애물을 지울 때 |
-| 회색 (`205`) | 알 수 없는 공간 | 관측하지 않은 영역으로 남길 때 |
+| 회색 (`205`) | 알 수 없는 공간 | 관측하지 않은 영역으로 남길 때 (바깥 영역) |
 
 <img src="images/gimp_2.png" style="width:300px; height:auto;">
 
