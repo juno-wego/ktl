@@ -534,8 +534,8 @@ waypoint_follower:
     loop_rate: 20
 
     # 하나의 waypoint 실패 시 전체 작업을 중단할지 결정합니다.
-    # 정확도 시험에서는 실패한 지점을 넘기지 않고 즉시 중단합니다.
-    stop_on_failure: true
+    # false이면 실패한 지점을 기록하고 다음 waypoint를 계속 시도합니다.
+    stop_on_failure: false
 
     # waypoint 도착 후 실행할 task executor 이름입니다.
     # 아래 wait_at_waypoint 설정의 키와 일치해야 합니다.
