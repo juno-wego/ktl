@@ -60,7 +60,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "map",
                 default_value=PathJoinSubstitution(
-                    [ktl_share, "maps", "map_260715_105707.yaml"]
+                    [ktl_share, "maps", "ktl.yaml"]
                 ),
                 description="저장된 Occupancy Grid map YAML 파일 경로",
             ),
