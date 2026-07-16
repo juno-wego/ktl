@@ -212,18 +212,24 @@ cp map_practice.yaml map_practice_edited.yaml
 
 `map_practice_edited.pgm`을 GIMP로 열고 Pencil처럼 경계가 흐려지지 않는 도구를 쓴다.
 
+<img src="images/gimp_1.png" style="width:500px; height:auto;">
+
 | 색 | Nav2가 해석하는 의미 | 사용할 때 |
 |---|---|---|
 | 검정 (`0`) | 장애물 | 벽·출입 금지 구역을 추가할 때 |
 | 흰색 (`255`) | 이동 가능한 공간 | 잘못 들어간 장애물을 지울 때 |
 | 회색 (`205`) | 알 수 없는 공간 | 관측하지 않은 영역으로 남길 때 |
 
-이미지 크기를 바꾸거나 자르거나 회전하면 지도 좌표가 달라진다. 픽셀 크기를 그대로
-유지하고, 안티앨리어싱·블러·흐린 브러시는 사용하지 않는다. 중간 회색이 생기면 Nav2가
-장애물인지 빈 공간인지 애매하게 판단할 수 있다.
+<img src="images/gimp_2.png" style="width:300px; height:auto;">
+
+해당 툴을 이용하여 그림판 다루듯 지도의 해당 부분을 수정한다.
+
+색상 선택에는 스포이드 도구를 사용한다.
 
 수정이 끝나면 같은 이름의 `map_practice_edited.pgm`으로 내보낸다. 형식은 8비트
 grayscale PGM으로 유지하고, 색상 이미지나 알파 채널을 넣지 않는다.
+
+파일 저장에는 **overwrite**를 선택한다.
 
 ### 3. YAML 파일 이름 확인
 
