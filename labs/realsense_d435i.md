@@ -1,4 +1,4 @@
-# RealSense D435i 설치와 확인
+# RealSense D435i 설치 매뉴얼
 
 현재 Go2 Jetson AGX Orin은 JetPack `6.2.1` 환경이다.
 
