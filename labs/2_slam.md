@@ -199,6 +199,8 @@ ros2 run nav2_map_server map_saver_cli \
 
 처음 매핑을 시작했던 위치에서 재개하는 예시는 다음과 같다.
 
+[terminal 1]
+
 ```bash
 ros2 launch ktl go2_mapping.launch.py \
   posegraph:=/home/ktl/ktl_ws/src/ktl/maps/map_practice \
@@ -206,10 +208,9 @@ ros2 launch ktl go2_mapping.launch.py \
   rviz:=true
 ```
 
-`map_start_pose`는 저장된 지도 좌표계에서 로봇이 시작할 실제 `[x, y, yaw]`다. 저장 당시
-시작 지점에서 재개하면 `[0.0, 0.0, 0.0]`을 쓰고, 다른 위치에서 재개하면 그 위치의 지도
-좌표를 정확히 지정한다. 초기 위치가 틀리면 scan matching이 잘못되어 지도가 휘거나 깨질 수
-있다.
+터미널 1의 rviz가 켜지고 slamtoolbox UI가 확인 되면, 터미널 창 하나를 더 열어 아래의 명령어를 입력한다.
+
+[terminal 2]
 
 ```bash
 ros2 service call /slam_toolbox/deserialize_map \
