@@ -218,5 +218,6 @@ Go2 상태 → go2_base → odom·IMU·배터리 → slam_toolbox / Nav2
 
 - [시스템 구성](ktl/labs/1_system.md)
 - [SLAM](ktl/labs/2_slam.md)
+- [RealSense D435i 설치](ktl/labs/realsense_d435i.md)
 - [Navigation](ktl/labs/3_nav.md)
 - [명령어 모음](ktl/labs/cmd_manuals.md)
