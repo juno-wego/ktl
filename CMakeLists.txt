@@ -4,6 +4,7 @@ project(ktl)
 find_package(ament_cmake REQUIRED)
 
 install(DIRECTORY
+  behavior_trees
   config
   launch
   maps

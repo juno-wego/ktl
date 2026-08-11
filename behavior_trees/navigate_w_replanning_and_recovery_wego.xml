@@ -1,0 +1,40 @@
+<!--
+  Wego-Robot-Engeering-Team/go2 (foxy) 의
+  wego_2d_nav/behavior_trees/navigate_w_replanning_and_recovery_wego.xml 을 그대로 가져온 것이다.
+  BT.CPP v3 문법이라 Humble에서도 수정 없이 동작한다.
+
+  Humble 기본 BT(navigate_to_pose_w_replanning_and_recovery.xml)와의 차이:
+    - ComputePathToPose / FollowPath 재시도가 1회가 아니라 5회다.
+      한 번 실패했다고 바로 전역 recovery로 빠지지 않는다.
+    - recovery를 RoundRobin(한 번에 하나씩)이 아니라
+      SequenceStar(costmap 초기화 -> spin -> wait 전부)로 실행한다.
+
+  전역 경로는 1 Hz로 재계획한다.
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="5" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="5" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <SequenceStar name="RecoveryActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          <Spin spin_dist="1.57"/>
+          <Wait wait_duration="5"/>
+        </SequenceStar>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

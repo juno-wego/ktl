@@ -11,6 +11,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
@@ -36,6 +37,30 @@ def generate_launch_description():
             "nav2",
             "go2_nav2_params.yaml",
         ]
+    )
+
+    # ------------------------------------------------------------------
+    # Behavior Tree
+    #
+    # Humble 기본 BT는 경로 계획/추종 재시도가 각 1회뿐이라 한 번만 삐끗해도
+    # 전역 recovery로 빠지고 곧 abort가 된다. 재시도 5회짜리 BT를 대신 쓴다.
+    #
+    # yaml에는 절대 경로를 적을 수 없으므로 여기서 설치 경로로 덮어쓴다.
+    # (go2_nav2_params.yaml의 default_nav_to_pose_bt_xml 값)
+    # ------------------------------------------------------------------
+    bt_xml_file = PathJoinSubstitution(
+        [
+            ktl_share,
+            "behavior_trees",
+            "navigate_w_replanning_and_recovery_wego.xml",
+        ]
+    )
+
+    configured_nav2_params = RewrittenYaml(
+        source_file=nav2_params_file,
+        param_rewrites={
+            "default_nav_to_pose_bt_xml": bt_xml_file,
+        },
     )
 
     rviz_config_file = PathJoinSubstitution(
@@ -177,7 +202,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "map": map_yaml,
-                    "params_file": nav2_params_file,
+                    "params_file": configured_nav2_params,
                     "use_sim_time": "false",
                     "autostart": "true",
                     # Nav2 Humble uses PythonExpression("not <value>")
