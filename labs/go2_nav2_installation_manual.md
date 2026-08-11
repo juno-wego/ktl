@@ -1,21 +1,14 @@
 # Go2 Nav2 설치 매뉴얼
 
-주행 중 abort가 발생하던 문제를 잡기 위해 Nav2 설정을 교체했다.
-아래 순서대로 진행하면 된다.
-
 ## 1. 패키지 설치
 
 ```bash
-source /opt/ros/humble/setup.bash
-
 sudo apt update
 sudo apt install -y \
   ros-humble-navigation2 \
   ros-humble-nav2-bringup \
   python3-colcon-common-extensions
 ```
-
-따로 clone 하거나 빌드할 플러그인은 없다.
 
 ## 2. 설정 받기
 
