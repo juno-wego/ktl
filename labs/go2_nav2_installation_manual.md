@@ -31,8 +31,3 @@ source install/setup.bash
 ```bash
 ros2 launch ktl go2_navigation.launch.py
 ```
-
-RViz가 뜨면 **2D Pose Estimate**로 로봇의 현재 위치를 먼저 찍어준다.
-그 다음 **2D Goal Pose**로 목표를 지정한다.
-
-문제가 생기면 터미널 로그와 함께 알려주세요.
