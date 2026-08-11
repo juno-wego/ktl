@@ -1,86 +1,58 @@
 # Go2 Nav2 파라미터 (ROS 2 Humble)
 #
-# 기준 원본:
-#   Wego-Robot-Engeering-Team/go2 (foxy 브랜치)
-#   wego_2d_nav/config/nav2_params.yaml
-#
-# 실주행에서 검증된 "NavFn + Regulated Pure Pursuit" 조합을 그대로 옮긴 것이다.
-# MPPI와 StraightLine planner는 원본에 없으므로 쓰지 않는다.
-#
-# 주석 표기
-#   [Humble] Foxy -> Humble 이관 때문에 불가피하게 바뀐 항목
-#   [추가]   원본에 없던 항목 (Humble에서 새로 생긴 노드 등)
-#   그 외에는 원본 값을 그대로 유지한 것이다.
+# 원본: Wego-Robot-Engeering-Team/go2 (foxy) wego_2d_nav/config/nav2_params.yaml
+# 실주행에서 검증된 NavFn + Regulated Pure Pursuit 조합을 옮긴 것이다.
+# 값은 원본 그대로이고, Humble에서 이름이 바뀌거나 새로 생긴 항목만 조정했다.
 
 amcl:
   ros__parameters:
     use_sim_time: false
-
-    # 오도메트리 노이즈 계수. 원본 값 그대로.
     alpha1: 0.02
     alpha2: 0.006
     alpha3: 0.02
     alpha4: 0.006
     alpha5: 0.02
-
-    # [Humble] 원본은 base_footprint를 쓰지만, ktl의 URDF와
-    # pointcloud_to_laserscan(target_frame)이 base_link 기준이라 맞춘다.
     base_frame_id: "base_link"
     global_frame_id: "map"
     odom_frame_id: "odom"
 
-    # [Humble] Humble AMCL은 pluginlib으로 모션 모델을 로드한다.
-    # 원본의 "differential" 문자열을 그대로 쓰면 플러그인 로드에 실패한다.
+    # Humble AMCL은 pluginlib으로 로드한다. "differential"로 줄여 쓰면 로드에 실패한다.
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
 
     laser_model_type: "likelihood_field"
     max_beams: 45
-
-    # [Humble] 원본 스캔은 range_max가 100.0이지만 ktl 스캔은 20.0이므로 맞춘다.
-    laser_max_range: 20.0
+    laser_max_range: 20.0   # go2_pointcloud_to_laserscan.yaml의 range_max와 맞춘다
     laser_min_range: -1.0
-
     laser_likelihood_max_dist: 1.5
     sigma_hit: 0.3
-
-    # 원본은 beam skip을 쓰지 않는다. likelihood_field와 짝이 맞는 설정이다.
     beam_skip_distance: 1.0
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.5
     do_beamskip: false
-
     lambda_short: 0.1
     max_particles: 1200
     min_particles: 400
     pf_err: 0.1
     pf_z: 0.99
 
-    # 원본은 파티클 재주입을 꺼 둔다.
-    # 켜면 정합이 잠깐 나빠질 때 위치가 튀고, 주행 중 경로가 급변한다.
+    # 켜면 정합이 잠깐 나빠질 때 파티클이 재주입되며 위치가 튄다.
     recovery_alpha_fast: 0.0
     recovery_alpha_slow: 0.0
 
     resample_interval: 1
     save_pose_rate: 0.5
-
-    # RViz의 2D Pose Estimate로 초기 위치를 지정한다.
-    set_initial_pose: false
+    set_initial_pose: false   # RViz의 2D Pose Estimate로 지정한다
     tf_broadcast: true
 
-    # Go2의 LiDAR -> pointcloud_to_laserscan -> restamp 파이프라인 지연을 흡수한다.
-    # 줄이면 TF 외삽 실패로 주행이 중간에 끊긴다.
+    # 스캔 파이프라인 지연을 흡수한다. 줄이면 TF 외삽 실패로 주행이 중간에 끊긴다.
     transform_tolerance: 1.0
 
     update_min_a: 0.05
     update_min_d: 0.05
-
     z_hit: 0.5
     z_max: 0.03
     z_rand: 0.4
     z_short: 0.07
-
-    # [Humble] 원본은 laser_filters를 거친 /scan_filtered를 쓴다.
-    # ktl은 restamp_laserscan.py 출력인 /scan을 쓴다.
     scan_topic: /scan
 
 bt_navigator:
@@ -91,16 +63,10 @@ bt_navigator:
     odom_topic: /go2/odom
     bt_loop_duration: 10
     default_server_timeout: 20
-
-    # [추가] Humble에서 생긴 파라미터. 서버 대기 시간(ms).
     wait_for_service_timeout: 1000
 
-    # 원본의 커스텀 BT(navigate_w_replanning_and_recovery_wego.xml)를 사용한다.
-    # 실제 경로는 go2_navigation.launch.py가 설치 경로로 덮어쓴다.
-    #
-    # Humble 기본 BT는 ComputePathToPose / FollowPath 재시도가 각 1회뿐이라
-    # 한 번만 삐끗해도 전역 recovery로 빠지고 결국 abort로 이어진다.
-    # 원본 BT는 각 5회까지 재시도한다.
+    # go2_navigation.launch.py가 behavior_trees/ 의 설치 경로로 덮어쓴다.
+    # 여기에 직접 적어도 반영되지 않는다.
     default_nav_to_pose_bt_xml: ""
 
     plugin_lib_names:
@@ -167,36 +133,26 @@ controller_server:
     min_x_velocity_threshold: 0.01
     min_y_velocity_threshold: 0.01
     min_theta_velocity_threshold: 0.1
-
-    # [추가] Foxy에는 없던 파라미터.
-    # 컨트롤러가 유효한 명령을 못 만들어도 이 시간(초)만큼은 버틴 뒤 실패로 본다.
-    # 값이 작으면 순간적인 실패에도 곧바로 abort가 뜬다.
-    failure_tolerance: 1.0
-
+    failure_tolerance: 1.0   # 명령을 못 만들어도 이 시간(초)은 버틴다. 줄이면 abort가 빨라진다
     odom_topic: /go2/odom
-
-    # [Humble] Foxy의 goal_checker_plugin(단수)이 goal_checker_plugins(복수)로 바뀌었다.
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
 
-    # 30초 안에 0.15 m를 못 가면 진행 실패로 본다.
-    # 좁은 구간에서 감속하거나 제자리 회전하는 시간을 넉넉히 허용하는 값이다.
+    # 30초 안에 0.15 m를 못 가면 진행 실패. 좁은 곳에서 감속·회전할 시간을 허용한다.
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.15
       movement_time_allowance: 30.0
 
-    # 원본 주석에 0.3 / 0.35를 쓰다가 0.6 / 0.9로 늘린 흔적이 있다.
-    # 다리 로봇은 정지 자세를 정밀하게 유지하지 못하므로 조이면 목표 근처에서 진동한다.
+    # 조이면 다리 로봇 특성상 목표 근처에서 자세를 못 맞추고 진동한다.
     general_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.6
       yaw_goal_tolerance: 0.9
       stateful: true
 
-    # Regulated Pure Pursuit.
-    # 샘플링 기반 컨트롤러보다 가볍고, 전방 속도와 yaw만 낸다. 횡속도는 쓰지 않는다.
+    # 전방 속도와 yaw만 낸다. 횡속도는 쓰지 않는다.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 0.8
@@ -205,42 +161,23 @@ controller_server:
       max_lookahead_dist: 0.9
       lookahead_time: 1.5
       use_velocity_scaled_lookahead_dist: true
-
-      # AMCL과 같은 이유로 넉넉하게 둔다.
       transform_tolerance: 0.8
-
       min_approach_linear_velocity: 0.2
-
-      # [Humble] 원본의 max_allowed_time_to_collision이 이 이름으로 바뀌었다.
       use_collision_detection: true
       max_allowed_time_to_collision_up_to_carrot: 1.0
-
       use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: false
-
-      # 위 cost 기반 감속이 false라 아래 두 값은 동작하지 않는다. 원본 값을 유지한다.
-      cost_scaling_dist: 0.3
-      cost_scaling_gain: 1.0
-
-      # local_costmap의 inflation_layer.cost_scaling_factor와 반드시 같아야 한다.
-      inflation_cost_scaling_factor: 1.8
-
+      cost_scaling_dist: 0.3    # 위가 false라 미동작
+      cost_scaling_gain: 1.0    # 위가 false라 미동작
+      inflation_cost_scaling_factor: 1.8   # local_costmap의 cost_scaling_factor와 같아야 한다
       regulated_linear_scaling_min_radius: 0.6
-
-      # 규제 감속이 걸려도 이 속도 밑으로는 내리지 않는다.
-      # 곡률이 큰 구간에서 로봇이 기어가다 멈추는 것을 막는다.
-      regulated_linear_scaling_min_speed: 0.3
-
+      regulated_linear_scaling_min_speed: 0.3   # 곡률 구간에서 기어가다 멈추는 것을 막는다
       use_rotate_to_heading: true
       rotate_to_heading_min_angle: 0.2
       rotate_to_heading_angular_vel: 0.5
       max_angular_accel: 2.0
-
-      # [추가] Humble 기본값. 성긴 경로에서 속도가 튀는 것을 줄인다.
       use_interpolation: true
-
-      # 참고: 원본의 max_linear_accel / max_linear_decel / use_approach_linear_velocity_scaling은
-      # Humble RPP에서 제거되었다. 선가속 제한은 아래 velocity_smoother가 담당한다.
+      # 선가속 제한은 Humble RPP에서 빠졌다. velocity_smoother가 담당한다.
 
 local_costmap:
   local_costmap:
@@ -250,20 +187,14 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: false
-
-      # 줄이면 "Could not transform" 으로 제어 루프가 끊긴다.
       transform_tolerance: 0.8
-
       rolling_window: true
       width: 3
       height: 3
       resolution: 0.05
-
       footprint: "[[0.43, 0.17], [0.43, -0.17], [-0.37, -0.17], [-0.37, 0.17]]"
       footprint_padding: 0.01
-
       plugins: ["obstacle_layer", "inflation_layer"]
-
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
@@ -278,12 +209,10 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
           obstacle_min_range: 0.0
-
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.8
         inflation_radius: 0.25
-
       always_send_full_costmap: true
 
 global_costmap:
@@ -295,17 +224,12 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: false
       transform_tolerance: 0.8
-
-      # 원본은 local(-0.37)과 global(-0.32)의 후방 길이가 다르다.
-      # local이 더 크게(보수적으로) 잡혀 있어 그대로 유지한다.
+      # 후방 길이가 local(-0.37)과 다르다. 원본 값이고 local이 더 보수적이라 유지한다.
       footprint: "[[0.43, 0.17], [0.43, -0.17], [-0.32, -0.17], [-0.32, 0.17]]"
       footprint_padding: 0.01
-
       resolution: 0.05
       track_unknown_space: true
-
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
@@ -320,29 +244,24 @@ global_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
           obstacle_min_range: 0.0
-
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
-
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.35
-
       always_send_full_costmap: true
 
 map_server:
   ros__parameters:
     use_sim_time: false
-    # 실제 경로는 launch의 map 인자가 덮어쓴다.
-    yaml_filename: ""
+    yaml_filename: ""   # launch의 map 인자가 덮어쓴다
 
 map_saver:
   ros__parameters:
     use_sim_time: false
-    # [Humble] Foxy는 이 값을 ms(5000)로 해석하지만 Humble은 초 단위다.
-    save_map_timeout: 5.0
+    save_map_timeout: 5.0   # Humble은 초 단위 (Foxy는 ms)
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: true
@@ -352,18 +271,13 @@ planner_server:
     use_sim_time: false
     expected_planner_frequency: 20.0
     planner_plugins: ["GridBased"]
-
-    # NavFn(Dijkstra). 원본 값 그대로.
-    # allow_unknown: true 라서 아직 관측하지 않은 영역도 지나갈 수 있다.
-    # 이 값을 false로 두면 미탐색 구간에서 "경로 없음"으로 주행이 멈춘다.
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
       use_astar: false
-      allow_unknown: true
+      allow_unknown: true   # false로 두면 미탐색 구간에서 "경로 없음"으로 멈춘다
 
-# [추가] Foxy에는 없던 노드. Humble의 nav2 bringup이 항상 띄우므로 설정만 남겨 둔다.
-# 현재 BT는 SmoothPath를 호출하지 않아 실제로 쓰이지는 않는다.
+# 현재 BT가 SmoothPath를 호출하지 않아 쓰이지 않지만, bringup이 노드를 띄우므로 남겨 둔다.
 smoother_server:
   ros__parameters:
     use_sim_time: false
@@ -374,16 +288,12 @@ smoother_server:
       max_its: 1000
       do_refinement: true
 
-# [Humble] Foxy의 recoveries_server가 behavior_server로 이름이 바뀌었다.
-# costmap_topic / footprint_topic 파라미터 이름은 Humble에서도 그대로다.
 behavior_server:
   ros__parameters:
     use_sim_time: false
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-
-    # [Humble] nav2_recoveries -> nav2_behaviors 로 플러그인 네임스페이스가 바뀌었다.
     behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
     spin:
       plugin: "nav2_behaviors/Spin"
@@ -393,17 +303,12 @@ behavior_server:
       plugin: "nav2_behaviors/DriveOnHeading"
     wait:
       plugin: "nav2_behaviors/Wait"
-
     global_frame: odom
     robot_base_frame: base_link
-
-    # [Humble] 원본의 transform_timeout(0.5)이 transform_tolerance로 바뀌었다.
     transform_tolerance: 0.5
-
     simulate_ahead_time: 2.0
 
-    # 원본 값 그대로. min_rotational_vel이 낮으면 Go2가 실제로 돌지 않아
-    # spin recovery가 아무 일도 하지 않은 채 끝난다.
+    # min_rotational_vel이 낮으면 Go2가 실제로 돌지 않아 spin recovery가 헛돈다.
     max_rotational_vel: 2.0
     min_rotational_vel: 1.3
     rotational_acc_lim: 10.0
@@ -419,20 +324,12 @@ waypoint_follower:
       enabled: true
       waypoint_pause_duration: 200
 
-# [추가] Foxy에는 이 노드 자체가 없다.
-#
-# 원본에서는 controller_server가 /cmd_vel에 직접 발행했다.
-# Humble의 nav2 bringup은 controller_server -> /cmd_vel_nav -> velocity_smoother -> /cmd_vel
-# 순서로 연결하므로, 이 노드가 로봇에 나가는 마지막 관문이 된다.
-#
-# 따라서 여기 한계값은 위 컨트롤러/behavior들의 한계를 모두 포함해야 한다.
-# 좁게 잡으면 이 노드가 병목이 되어 로봇이 주행 중 멈춘 것처럼 보인다.
-#   - 선속도 0.8  : FollowPath.desired_linear_vel
-#   - 각속도 2.0  : behavior_server.max_rotational_vel (spin recovery)
-#   - 선가속 1.2  : 원본 RPP의 max_linear_accel / max_linear_decel
-#   - 각가속 10.0 : behavior_server.rotational_acc_lim
-#
-# 횡속도(y)는 0이다. 원본이 차동구동으로 동작했고 RPP도 횡속도를 내지 않는다.
+# controller_server -> /cmd_vel_nav -> velocity_smoother -> /cmd_vel 순서라
+# 이 노드가 로봇에 나가는 마지막 관문이다. 좁게 잡으면 여기가 병목이 되어
+# 주행 중 멈춘 것처럼 보인다. 상위 명령의 상한을 모두 포함해야 한다.
+#   0.8 / 1.2  : FollowPath.desired_linear_vel, 원본 RPP의 선가속
+#   2.0 / 10.0 : behavior_server의 max_rotational_vel, rotational_acc_lim
+# 횡속도(y)는 0이다. RPP가 횡속도를 내지 않는다.
 velocity_smoother:
   ros__parameters:
     use_sim_time: false
