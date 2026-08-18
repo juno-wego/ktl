@@ -78,6 +78,10 @@ colcon build --packages-select hesai_ros_driver --symlink-install \
 
 colcon build --symlink-install --packages-skip hesai_ros_driver
 source ~/ktl_ws/install/setup.bash
+
+# RealSense 영상 저장 패키지만 다시 빌드할 때
+colcon build --packages-select ktl_realsense_recorder --symlink-install
+source ~/ktl_ws/install/setup.bash
 ```
 
 ## 5. Go2와 LiDAR 확인
@@ -153,6 +157,32 @@ ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist \
 ```bash
 ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
   "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```
+
+## 9. RealSense 영상 저장
+
+Go2 bringup 또는 Navigation을 먼저 실행해 D435i 영상 토픽을 올린다. 그 다음
+새 터미널에서 recorder를 실행한다.
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ktl_ws/install/setup.bash
+
+ros2 launch ktl_realsense_recorder video_recorder.launch.py
+```
+
+기본 입력 토픽은 `/camera/d435i/color/image_raw`이고, 영상은 자동으로 만든
+`~/Videos/realsense` 디렉터리에 `realsense_YYYYMMDD_HHMMSS.mp4` 형식으로 저장된다.
+노드를 실행한 시점부터 녹화하며, 녹화를 끝낼 때는 `Ctrl-C`로 노드를 종료한다.
+종료 시 MP4 파일을 정상적으로 마감한다.
+
+저장 경로 또는 입력 토픽을 바꿀 때:
+
+```bash
+ros2 launch ktl_realsense_recorder video_recorder.launch.py \
+  output_dir:=/home/ktl/recordings \
+  image_topic:=/camera/d435i/color/image_raw \
+  fps:=15.0
 ```
 
 
