@@ -36,6 +36,18 @@ ros2 run tf2_ros tf2_echo 기준_프레임 대상_프레임  # 두 프레임 사
 ros2 run tf2_ros tf2_echo map base_link
 ```
 
+`map` 좌표계에서 로봇의 현재 위치를 확인하는 명령이다. 출력의
+`Translation` 항목에서 `x`, `y`가 지도 기준 로봇 위치(m)를 나타내고,
+`Rotation` 항목의 quaternion이 로봇의 현재 자세를 나타낸다. 명령은 계속
+실행되며 TF가 갱신될 때마다 위치가 바뀐다.
+
+`map -> base_link` 변환이 출력되지 않으면 TF 트리를 확인한다.
+
+```bash
+ros2 run tf2_tools view_frames
+ros2 topic echo --once /tf
+```
+
 전체 TF 트리를 파일로 생성:
 
 ```bash
@@ -171,20 +183,17 @@ source ~/ktl_ws/install/setup.bash
 ros2 launch ktl_realsense_recorder video_recorder.launch.py
 ```
 
-기본 입력 토픽은 `/camera/d435i/color/image_raw`이고, 영상은 자동으로 만든
-`~/Videos/realsense` 디렉터리에 `realsense_YYYYMMDD_HHMMSS.mp4` 형식으로 저장된다.
 노드를 실행한 시점부터 녹화하며, 녹화를 끝낼 때는 `Ctrl-C`로 노드를 종료한다.
 종료 시 MP4 파일을 정상적으로 마감한다.
+영상은 ~/Videos/recorded_videos/에 저장된다.
 
-저장 경로 또는 입력 토픽을 바꿀 때:
+## 10. 지도 기준 로봇 현재 위치 확인
 
 ```bash
-ros2 launch ktl_realsense_recorder video_recorder.launch.py \
-  output_dir:=/home/ktl/recordings \
-  image_topic:=/camera/d435i/color/image_raw \
-  fps:=15.0
+ros2 run tf2_ros tf2_echo map base_link
 ```
 
-
-
-ros2 run tf2_ros tf2_echo map base_link
+`map` 좌표계에서 `base_link`까지의 TF를 계속 출력한다. 즉 지도 기준
+로봇의 현재 위치를 확인할 때 사용한다. 출력의 `Translation`에서 `x`, `y`
+값이 로봇 위치(m)이고, `Rotation`의 quaternion이 로봇의 현재 자세이다.
+명령을 종료하려면 `Ctrl-C`를 누른다.
