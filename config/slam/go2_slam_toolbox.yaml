@@ -74,11 +74,11 @@ slam_toolbox:
 
     # SLAM에 사용할 LaserScan 최소 거리(m)입니다.
     # 센서 근처의 불안정한 포인트를 제외하려면 값을 키웁니다.
-    min_laser_range: 0.1
+    min_laser_range: 0.5
 
     # SLAM에 사용할 LaserScan 최대 거리(m)입니다.
     # 값을 줄이면 먼 거리의 오검출을 줄이고 계산량을 낮출 수 있습니다.
-    max_laser_range: 20.0
+    max_laser_range: 30.0
 
     # LaserScan 처리 사이의 최소 시간(초)입니다.
     # 값을 키우면 처리 빈도와 CPU 사용량이 줄어듭니다.

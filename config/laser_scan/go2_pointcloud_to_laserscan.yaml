@@ -1,21 +1,28 @@
 go2_pointcloud_to_laserscan:
   ros__parameters:
-    # 포인트를 변환해 출력할 기준 TF 프레임입니다.
-    # base_link 기준으로 바꾸면 로봇 중심 기준 높이 필터가 적용됩니다.
-    target_frame: base_link
+    # 원본 LiDAR 프레임에서 바로 LaserScan을 만든다. pointcloud_to_laserscan이
+    # base_link TF 대기 큐에 고착되어 /scan이 끊기는 현상을 방지한다.
+    # AMCL/costmap은 URDF의 정적 TF로 hesai_lidar를 base_link에 변환한다.
+    target_frame: hesai_lidar
 
     # TF를 기다릴 최대 시간(초)입니다.
     # 값을 키우면 늦게 도착한 TF를 더 기다리지만 지연도 증가합니다.
     transform_tolerance: 0.1
 
+    # DDS 수신 콜백이 멈춰도 2초 후 구독을 자동으로 재생성한다.
+    watchdog_timeout: 2.0
+
+    # 대용량 PointCloud가 밀리지 않도록 항상 최신 프레임 하나만 처리한다.
+    queue_size: 1
+
     # 포인트를 사용할 최소 높이(m)입니다.
-    # 센서 기준 지면(-0.15 m)과 로봇 하체 반사를 제외합니다.
-    # 값을 더 높이면 낮은 장애물도 함께 제외되므로 -0.05 m를 기준으로 둡니다.
-    min_height: -0.05
+    # base_link 기준 -0.05 m와 같은 실제 높이 범위다.
+    # hesai_lidar가 base_link보다 0.15 m 높으므로 센서 프레임 기준 -0.20 m다.
+    min_height: -0.20
 
     # 포인트를 사용할 최대 높이(m)입니다.
-    # 값을 낮추면 로봇 상부나 높은 장애물 포인트를 LaserScan에서 제외합니다.
-    max_height: 0.45
+    # base_link 기준 0.45 m와 같은 실제 높이 범위다.
+    max_height: 0.30
 
     # 스캔의 최소 각도(rad)입니다.
     # 값을 좁히면 로봇 주변의 특정 방향만 LaserScan에 포함됩니다.
@@ -51,7 +58,7 @@ go2_pointcloud_to_laserscan:
 
     # 유효한 거리로 인정할 최대 범위(m)입니다.
     # 값을 줄이면 먼 거리의 포인트를 무시해 Nav2와 SLAM의 부담을 줄입니다.
-    range_max: 20.0
+    range_max: 30.0
 
     # 측정되지 않은 빔을 무한 거리로 채울지 결정합니다.
     # true이면 빈 공간을 장애물 없음으로 표현하고, false이면 빈 빔이 제외됩니다.

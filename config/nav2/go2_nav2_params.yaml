@@ -7,10 +7,13 @@
 amcl:
   ros__parameters:
     use_sim_time: false
-    alpha1: 0.02
-    alpha2: 0.006
-    alpha3: 0.02
-    alpha4: 0.006
+    # Go2 자체 odom의 누적 위치/방향 오차를 AMCL이 따라가 버리지 않도록
+    # motion model 분산을 확보한다. 값이 너무 작으면 파티클이 odom 주변에만
+    # 몰려 LaserScan이 지도 쪽으로 위치를 다시 끌어오지 못한다.
+    alpha1: 0.08
+    alpha2: 0.03
+    alpha3: 0.08
+    alpha4: 0.03
     alpha5: 0.02
     base_frame_id: "base_link"
     global_frame_id: "map"
@@ -20,19 +23,21 @@ amcl:
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
 
     laser_model_type: "likelihood_field"
-    max_beams: 45
-    laser_max_range: 20.0   # go2_pointcloud_to_laserscan.yaml의 range_max와 맞춘다
+    # 723개 LaserScan 중 충분한 수를 사용해 긴 복도에서도 방향/측면 벽을
+    # 놓치지 않게 한다. 120개면 계산량을 크게 늘리지 않으면서 약 3도 간격이다.
+    max_beams: 120
+    laser_max_range: 30.0   # go2_pointcloud_to_laserscan.yaml의 range_max와 맞춘다
     laser_min_range: -1.0
     laser_likelihood_max_dist: 1.5
-    sigma_hit: 0.3
+    sigma_hit: 0.2
     beam_skip_distance: 1.0
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.5
     do_beamskip: false
     lambda_short: 0.1
-    max_particles: 1200
-    min_particles: 400
-    pf_err: 0.1
+    max_particles: 2000
+    min_particles: 600
+    pf_err: 0.05
     pf_z: 0.99
 
     # 켜면 정합이 잠깐 나빠질 때 파티클이 재주입되며 위치가 튄다.
@@ -47,12 +52,14 @@ amcl:
     # 스캔 파이프라인 지연을 흡수한다. 줄이면 TF 외삽 실패로 주행이 중간에 끊긴다.
     transform_tolerance: 1.0
 
-    update_min_a: 0.05
-    update_min_d: 0.05
-    z_hit: 0.5
+    # 정지 중에도 map -> odom TF를 계속 갱신해 RViz/Nav2의 TF 만료를 막는다.
+    update_min_a: 0.0
+    update_min_d: 0.0
+    # 무작위 측정보다 지도와 일치하는 측정에 더 큰 가중치를 준다.
+    z_hit: 0.75
     z_max: 0.03
-    z_rand: 0.4
-    z_short: 0.07
+    z_rand: 0.20
+    z_short: 0.02
     scan_topic: /scan
 
 bt_navigator:
@@ -139,11 +146,12 @@ controller_server:
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
 
-    # 30초 안에 0.15 m를 못 가면 진행 실패. 좁은 곳에서 감속·회전할 시간을 허용한다.
+    # 초기 자세가 경로 반대 방향이면 제자리 정렬에 시간이 걸린다. 이동 반경은
+    # Foxy 검증값을 유지하고, 정렬 후 전진할 여유만 45초로 확보한다.
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.15
-      movement_time_allowance: 30.0
+      movement_time_allowance: 45.0
 
     # 조이면 다리 로봇 특성상 목표 근처에서 자세를 못 맞추고 진동한다.
     general_goal_checker:
@@ -155,9 +163,11 @@ controller_server:
     # 전방 속도와 yaw만 낸다. 횡속도는 쓰지 않는다.
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.8
+      desired_linear_vel: 0.5
       lookahead_dist: 0.8
-      min_lookahead_dist: 0.3
+      # Humble RPP는 carrot 거리를 goal tolerance와 비교해 goal-heading 회전을 판단한다.
+      # xy_goal_tolerance(0.6 m)보다 크게 두어 출발 직후 최종 goal yaw로 돌지 않게 한다.
+      min_lookahead_dist: 0.7
       max_lookahead_dist: 0.9
       lookahead_time: 1.5
       use_velocity_scaled_lookahead_dist: true
@@ -172,10 +182,13 @@ controller_server:
       inflation_cost_scaling_factor: 1.8   # local_costmap의 cost_scaling_factor와 같아야 한다
       regulated_linear_scaling_min_radius: 0.6
       regulated_linear_scaling_min_speed: 0.3   # 곡률 구간에서 기어가다 멈추는 것을 막는다
+      # 큰 자세 오차에서만 제자리 회전을 우선한다. 작은 경로 오차는 전진하며 보정한다.
       use_rotate_to_heading: true
-      rotate_to_heading_min_angle: 0.2
+      rotate_to_heading_min_angle: 0.75
       rotate_to_heading_angular_vel: 0.5
-      max_angular_accel: 2.0
+      # Go2는 0.2 rad/s 부근에서 정지 마찰을 넘지 못한다. odom feedback이 0이면
+      # Humble RPP 가속 제한도 계속 0.2에 갇히므로 첫 주기에 0.5를 허용한다.
+      max_angular_accel: 10.0
       use_interpolation: true
       # 선가속 제한은 Humble RPP에서 빠졌다. velocity_smoother가 담당한다.
 
@@ -336,7 +349,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [0.8, 0.0, 2.0]
+    max_velocity: [0.5, 0.0, 2.0]
     min_velocity: [-0.5, 0.0, -2.0]
     max_accel: [1.2, 0.0, 10.0]
     max_decel: [-1.2, 0.0, -10.0]

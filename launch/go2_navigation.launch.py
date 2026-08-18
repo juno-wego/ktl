@@ -85,7 +85,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "map",
                 default_value=PathJoinSubstitution(
-                    [ktl_share, "maps", "ktl.yaml"]
+                    [ktl_share, "maps", "260818.yaml"]
                 ),
                 description="저장된 Occupancy Grid map YAML 파일 경로",
             ),
@@ -136,20 +136,18 @@ def generate_launch_description():
             # - 낮은 장애물은 감지
             # - 로봇 상부와 천장 포인트는 제외
             # ----------------------------------------------------------
+            # 상시 구독 + DDS watchdog 변환 노드. 기존 lazy subscriber가 멈춰
+            # /scan과 map->odom이 함께 끊기는 현상을 방지한다.
             Node(
-                package="pointcloud_to_laserscan",
-                executable="pointcloud_to_laserscan_node",
+                package="ktl",
+                executable="stable_pointcloud_to_laserscan",
                 name="go2_pointcloud_to_laserscan",
                 output="screen",
+                respawn=True,
+                respawn_delay=1.0,
                 remappings=[
-                    (
-                        "cloud_in",
-                        "/hesai/lidar_points",
-                    ),
-                    (
-                        "scan",
-                        "/hesai/scan_raw",
-                    ),
+                    ("cloud_in", "/hesai/lidar_points"),
+                    ("scan", "/hesai/scan_raw"),
                 ],
                 parameters=[
                     laser_scan_params,

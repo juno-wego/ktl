@@ -139,10 +139,12 @@ def generate_launch_description():
 
             # LiDAR PointCloud → 2D LaserScan
             Node(
-                package="pointcloud_to_laserscan",
-                executable="pointcloud_to_laserscan_node",
+                package="ktl",
+                executable="stable_pointcloud_to_laserscan",
                 name="go2_pointcloud_to_laserscan",
                 output="screen",
+                respawn=True,
+                respawn_delay=1.0,
                 remappings=[
                     (
                         "cloud_in",

@@ -154,3 +154,7 @@ ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist \
 ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
   "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 ```
+
+
+
+ros2 run tf2_ros tf2_echo map base_link
